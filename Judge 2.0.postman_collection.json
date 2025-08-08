@@ -8513,7 +8513,7 @@
 					"});`);\r",
 					"\r",
 					"const sentNetworkBody = minifiedFunction(sendNetworkEventBody);\r",
-					"//pm.collectionVariables.set(\"sendNetworkEvent\", sendNetworkEventBody);\r",
+					"pm.collectionVariables.set(\"sendNetworkEvent\", sendNetworkEventBody);\r",
 					"\r",
 					"// busca transação no judge => get\r",
 					"  const findAuthorizationTransactionBody = `\r",
