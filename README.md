@@ -111,9 +111,84 @@ sendNetworkEvent(params)
 
 ## 5. Documentação dos Métodos Reutilizáveis
 
-| Método | Parâmetros (`params`) | Retorno | Descrição Detalhada | Observações / Uso |
-|--------|------------------------|---------|----------------------|--------------------|
-| `sendNetworkEvent(params)` | - `pm`  <br> - `correlationId`  <br> - `destinationAddress`  <br> - `messageNamespace`  <br> - `mti`  <br> - `conciliationType`  <br> - `type`  <br> - `debitProgramCard`  <br> - `authorizationCategory`  <br> - `authorizationResponseCode`  <br> - `pan`  <br> - `requestPayload`  <br> - `exchangeName`  <br> - `caller`  <br> - `custom_response_code`  <br> - `adviceCode` | `Promise<string>` | Constrói e envia um evento de autorização para RabbitMQ. Utiliza dados da transação e prepara o payload conforme o esquema esperado pelo broker. Inclui metadados como `event_id`, `timestamp`, `org_id`. Envia via POST para a URL configurada em `environment`. | Pode ser invocada em qualquer lugar para disparar eventos para a fila RabbitMQ. Retorna uma `Promise` resolvida com confirmação ou rejeitada em erro. |
-| `findAuthorizationTransaction(params)` | - `pm`  <br> - `fields` (com `nsu`, `authorization_code`, `retrieval_reference_number`)  <br> - `correlationId` | `Promise<object>` | Busca transação no serviço Judge usando dados da autorização e headers (`x-correlation-id`). Requisição GET para `/GetTransaction`. Retorna JSON com dados e status atualizados. | Usada no fluxo para polling do status da transação. Pode ser customizada conforme ambiente (Local, Sandbox, Staging). |
-| `validateMambu(params)` | - `pm`  <br> - `aprovedOrReversedm`  <br> - `proxy` (cardId)  <br> - `authorizationId` | `Promise<object>` | Valida autorização consultando a API do Mambu via GET em `/api/cards/{proxy}/authorizationholds/{authorizationId}`. Inclui autenticação básica. Retorna dados da autorização para análise. | Usada para garantir que uma autorização foi registrada corretamente no sistema financeiro. |
-| `sendJudgeTransactionRequest(params)` | - `pm`  <br> - `requestBody`  <br> - `correlationId` | `Promise<object>` | Envia POST para `/transactions` no serviço Judge, usado para reversões ou atualizações. Inclui headers de autenticação e bypass. Retorna resultado da operação. | Utilizada para envio de solicitações específicas como reversões ou atualizações no sistema Judge. |
+---
+
+### `sendNetworkEvent(params)`
+
+**Parâmetros:**
+- `pm`
+- `correlationId`
+- `destinationAddress`
+- `messageNamespace`
+- `mti`
+- `conciliationType`
+- `type`
+- `debitProgramCard`
+- `authorizationCategory`
+- `authorizationResponseCode`
+- `pan`
+- `requestPayload`
+- `exchangeName`
+- `caller`
+- `custom_response_code`
+- `adviceCode`
+
+**Retorno:** `Promise<string>`
+
+**Descrição:**  
+Constrói e envia um evento de autorização para RabbitMQ. Utiliza os dados da transação (IDs, códigos de resposta, valores, dados de cartão, categoria de autorização) e prepara o payload conforme o esquema esperado pelo broker. Inclui metadados como `event_id`, `timestamp`, `org_id`. Envia via POST para a URL configurada em `environment`.
+
+**Uso:**  
+Pode ser invocada em qualquer lugar para disparar eventos para a fila RabbitMQ. Retorna uma `Promise` resolvida com confirmação textual ou rejeitada em erro.
+
+---
+
+### `findAuthorizationTransaction(params)`
+
+**Parâmetros:**
+- `pm`
+- `fields` (com `nsu`, `authorization_code`, `retrieval_reference_number`)
+- `correlationId`
+
+**Retorno:** `Promise<object>`
+
+**Descrição:**  
+Busca transação no serviço Judge utilizando dados da autorização e correlacionando via headers (`x-correlation-id`). Realiza uma requisição GET para o endpoint `/GetTransaction` passando parâmetros de identificação da transação. Retorna um objeto JSON com os dados e status atualizados da transação.
+
+**Uso:**  
+Usada tipicamente no fluxo para polling do status da transação. Pode ser customizada conforme ambiente (Local, Sandbox, Staging) para usar credenciais e bypass específicos.
+
+---
+
+### `validateMambu(params)`
+
+**Parâmetros:**
+- `pm`
+- `aprovedOrReversedm`
+- `proxy` (cardId)
+- `authorizationId`
+
+**Retorno:** `Promise<object>`
+
+**Descrição:**  
+Realiza validação da autorização consultando a API do Mambu via request GET para `/api/cards/{proxy}/authorizationholds/{authorizationId}`. Inclui cabeçalhos de autenticação básica e aceita responder no formato esperado. Retorna os dados da autorização para análise e validação da consistência e sucesso da autorização no sistema Mambu.
+
+**Uso:**  
+Pode ser usada para garantir que uma autorização foi devidamente registrada no sistema financeiro.
+
+---
+
+### `sendJudgeTransactionRequest(params)`
+
+**Parâmetros:**
+- `pm`
+- `requestBody`
+- `correlationId`
+
+**Retorno:** `Promise<object>`
+
+**Descrição:**  
+Envia requisição POST para o endpoint `/transactions` do serviço Judge, geralmente usado para reversões ou atualização de transações. Inclui headers de autenticação e possível bypass para ambientes locais e Sandbox. Retorna o resultado da operação.
+
+**Uso:**  
+Utilizada para envio de solicitações específicas como reversões ou atualizações no sistema Judge.
